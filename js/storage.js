@@ -95,6 +95,13 @@ export function saveAlerts(alerts) {
   safeSetJSON("priceAlerts", alerts);
 }
 
+export function getHistory() {
+  return safeGetJSON("convHistory", []);
+}
+export function saveHistory(history) {
+  safeSetJSON("convHistory", history);
+}
+
 export function initStorageHealth() {
   const keys = ["cachedRates","cachedMetals","priceAlerts","favCurrencies","convHistory","lang","theme"];
   keys.forEach(k => {

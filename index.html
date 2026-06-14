@@ -1,0 +1,985 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- ══ Security Headers (meta fallback — prefer server headers) ══ -->
+  <!-- Content Security Policy -->
+  <!-- NOTE: unsafe-inline removed from script-src; inline scripts below use gtag only.
+       For full nonce/hash support, implement CSP via server headers. -->
+  <meta http-equiv="Content-Security-Policy" content="
+    default-src 'self';
+    script-src 'self'
+      https://www.googletagmanager.com
+      https://www.google-analytics.com
+      https://s3.tradingview.com
+      https://cdn.jsdelivr.net;
+    style-src 'self' 'unsafe-inline'
+      https://fonts.googleapis.com;
+    font-src 'self'
+      https://fonts.gstatic.com;
+    img-src 'self' data: blob:
+      https://flagcdn.com
+      https://globalmoney.space;
+    connect-src 'self'
+      wss://stream.binance.com:9443
+      https://open.er-api.com
+      https://api.frankfurter.app
+      https://api.coingecko.com
+      https://api.binance.com
+      https://api.metals.live
+      https://data-asg.goldprice.org
+      https://www.google-analytics.com
+      https://cdn.jsdelivr.net;
+    frame-src 'self'
+      https://s.tradingview.com
+      https://www.tradingview.com;
+    worker-src 'self' blob:;
+    manifest-src 'self';
+    base-uri 'self';
+    form-action 'self' mailto:;
+  ">
+  <!-- Referrer Policy: don't leak path to third parties -->
+  <meta name="referrer" content="strict-origin-when-cross-origin">
+  <!-- Permissions Policy: limit browser feature exposure -->
+  <meta http-equiv="Permissions-Policy" content="
+    geolocation=(),
+    camera=(),
+    microphone=(),
+    payment=(),
+    usb=(),
+    interest-cohort=()
+  ">
+  <link rel="icon" type="image/png" href="favicon.png">
+  <title>Global Money — Live Currency & Crypto Converter</title>
+  <meta name="description" content="Free live currency and crypto exchange rates. Convert 160+ currencies instantly with charts, price alerts, and offline support.">
+  <meta name="theme-color" content="#1d6aff">
+  <link rel="manifest" href="manifest.json">
+
+  <!-- Open Graph -->
+  <meta property="og:title" content="Global Money">
+  <meta property="og:description" content="Currency, Crypto and Gold Converter">
+  <meta property="og:image" content="https://globalmoney.space/preview.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://globalmoney.space">
+  <link rel="canonical" href="https://globalmoney.space">
+
+  <!-- Twitter Cards -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Global Money">
+  <meta name="twitter:description" content="Currency, Crypto and Gold Converter">
+  <meta name="twitter:image" content="https://globalmoney.space/preview.png">
+
+  <!-- Schema.org JSON-LD -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    "name": "Global Money",
+    "url": "https://globalmoney.space",
+    "description": "Free live currency and crypto exchange rates. Convert 160+ currencies instantly with charts, price alerts, and offline support.",
+    "applicationCategory": "FinanceApplication",
+    "operatingSystem": "Any",
+    "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }
+  }
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <!-- Lightweight Charts loaded lazily when trends page opens -->
+  <!-- Google Analytics loaded conditionally after user consent — see js/consent.js -->
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- Splash -->
+<div id="splash">
+  <div class="splash-inner">
+    <img src="logo.png" alt="Global Money" class="splash-logo">
+    <h1 class="splash-title">Global Money</h1>
+    <div class="splash-spinner"></div>
+  </div>
+</div>
+
+<!-- PWA Install Banner -->
+<div id="installBanner" style="display:none">
+  <span id="installText">📲 Install app for offline use</span>
+  <button id="installBtn">Install</button>
+  <button id="installClose">✕</button>
+</div>
+
+<!-- iOS Add to Home Screen guide -->
+<div id="iosInstallModal" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.7);align-items:flex-end;justify-content:center;">
+  <div style="background:var(--bg-card,#1a1a2e);border-radius:16px 16px 0 0;padding:24px;max-width:480px;width:100%;text-align:center;">
+    <h3 style="margin:0 0 12px;font-size:1.1rem;">📲 Add to Home Screen</h3>
+    <p style="font-size:.9rem;color:var(--text-secondary,#aaa);line-height:1.6;">
+      1. Tap the <strong>Share</strong> button <span style="font-size:1.2rem">⬆</span> at the bottom of Safari<br>
+      2. Scroll down and tap <strong>"Add to Home Screen"</strong><br>
+      3. Tap <strong>Add</strong> in the top right
+    </p>
+    <button onclick="document.getElementById('iosInstallModal').style.display='none'"
+      style="margin-top:16px;padding:10px 32px;border-radius:8px;background:var(--accent,#6c63ff);color:#fff;border:none;font-size:1rem;cursor:pointer;">
+      Got it
+    </button>
+  </div>
+</div>
+
+<!-- Sidebar Overlay -->
+<div id="sidebarOverlay" class="sidebar-overlay"></div>
+
+<!-- Sidebar -->
+<nav id="sidebar" class="sidebar">
+  <div class="sidebar-header">
+    <div class="sidebar-brand">
+      <div class="sidebar-logo-wrap"><img src="logo.png" alt="GM"></div>
+      <span class="sidebar-brand-text">Global <span class="sidebar-accent">Money</span></span>
+    </div>
+    <button id="sidebarClose" class="sidebar-close" aria-label="Close">✕</button>
+  </div>
+
+  <ul class="sidebar-nav">
+    <li><a href="#" class="sidebar-link active" data-page="home">
+      <svg class="s-icon" viewBox="0 0 24 24"><path d="M3 9.5L12 3l9 6.5V21H3V9.5z"/></svg>
+      <span data-i18n="navHome">Home</span>
+    </a></li>
+    <li><a href="#" class="sidebar-link" data-page="converter">
+      <svg class="s-icon" viewBox="0 0 24 24"><path d="M7 16V4m0 0L3 8m4-4l4 4M17 8v12m0 0l4-4m-4 4l-4-4"/></svg>
+      <span data-i18n="navConverter">Converter</span>
+    </a></li>
+    <li><a href="#" class="sidebar-link" data-page="blackmarket">
+      <svg class="s-icon" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14H9V8h2v8zm4 0h-2V8h2v8z" fill="currentColor" stroke="none"/><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67V7z" fill="currentColor" stroke="none"/></svg>
+      <span data-i18n="navBlackMarket">السوق الموازية</span>
+    </a></li>
+    <li><a href="#" class="sidebar-link" data-page="compare">
+      <svg class="s-icon" viewBox="0 0 24 24"><path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+      <span data-i18n="navCompare">Compare</span>
+    </a></li>
+    <li><a href="#" class="sidebar-link" data-page="trends">
+      <svg class="s-icon" viewBox="0 0 24 24"><path d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg>
+      <span data-i18n="navTrends">Charts</span>
+    </a></li>
+    <li><a href="#" class="sidebar-link" data-page="crypto">
+      <svg class="s-icon" viewBox="0 0 24 24"><path d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+      <span data-i18n="navCrypto">Crypto</span>
+    </a></li>
+    <li><a href="#" class="sidebar-link" data-page="metals">
+      <svg class="s-icon" viewBox="0 0 24 24"><path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6L12 2z" stroke-width="1.8"/></svg>
+      <span data-i18n="navMetals">Metals</span>
+    </a></li>
+    <li><a href="#" class="sidebar-link" data-page="alerts">
+      <svg class="s-icon" viewBox="0 0 24 24"><path d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+      <span data-i18n="navAlerts">Alerts</span>
+    </a></li>
+    <li><a href="#" class="sidebar-link" data-page="history">
+      <svg class="s-icon" viewBox="0 0 24 24"><path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+      <span data-i18n="navHistory">History</span>
+    </a></li>
+    <li><a href="#" class="sidebar-link" data-page="favorites">
+      <svg class="s-icon" viewBox="0 0 24 24"><path d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"/></svg>
+      <span data-i18n="navFavorites">Favorites</span>
+    </a></li>
+    <li><a href="#" class="sidebar-link" data-page="portfolio">
+      <svg class="s-icon" viewBox="0 0 24 24"><path d="M3 3h18v4H3zM3 10h11v11H3zM16 10h5v5h-5zM16 17h5v4h-5z"/></svg>
+      <span data-i18n="navPortfolio">Portfolio</span>
+    </a></li>
+  </ul>
+
+  <!-- Sidebar Settings -->
+  <div class="sidebar-footer">
+    <div class="sidebar-divider"></div>
+    <div class="sidebar-settings">
+      <!-- Theme Toggle -->
+      <button id="themeBtn" class="sidebar-setting-btn">
+        <svg class="s-icon" viewBox="0 0 24 24" id="themeIcon"><path d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/></svg>
+        <span id="themeBtnLabel" data-i18n="darkMode">الوضع الليلي</span>
+        <div class="sidebar-toggle" id="themeToggle"></div>
+      </button>
+      <!-- Language -->
+      <div class="sidebar-lang">
+        <svg class="s-icon" viewBox="0 0 24 24"><path d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129"/></svg>
+        <span data-i18n="language">اللغة</span>
+        <div class="lang-btns">
+          <button class="lang-btn active" data-lang="en">EN</button>
+          <button class="lang-btn" data-lang="ar">AR</button>
+          <button class="lang-btn" data-lang="fr">FR</button>
+        </div>
+      </div>
+      <!-- Divider -->
+      <div class="sidebar-divider" style="margin:8px 0"></div>
+      <!-- Contact Us -->
+      <a href="#" class="sidebar-setting-btn sidebar-contact-link" id="contactUsBtn" data-page="contact">
+        <svg class="s-icon" viewBox="0 0 24 24"><path d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+        <span data-i18n="contactUs">اتصل بنا</span>
+      </a>
+      <!-- About -->
+      <button class="sidebar-setting-btn" id="aboutBtn">
+        <svg class="s-icon" viewBox="0 0 24 24"><path d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        <span data-i18n="aboutUs">عن التطبيق</span>
+      </button>
+    </div>
+  </div>
+</nav>
+
+<!-- About Modal (kept for compatibility, hidden) -->
+<div id="aboutModal" class="modal-overlay" style="display:none">
+  <div class="modal-box">
+    <div class="modal-header">
+      <img src="logo.png" alt="Global Money" style="width:48px;border-radius:12px">
+      <h3 data-i18n="aboutTitle">About Global Money</h3>
+      <button class="modal-close" id="aboutClose">✕</button>
+    </div>
+    <div class="modal-body">
+      <p data-i18n="aboutDesc">Global Money is a free, fast, and reliable currency converter for 160+ currencies and major cryptocurrencies. Built for travelers, traders, and everyday users who need instant, accurate exchange rates — even offline.</p>
+      <ul class="about-features">
+        <li>🌍 <span data-i18n="aboutF1">160+ world currencies</span></li>
+        <li>₿ <span data-i18n="aboutF2">Live crypto prices</span></li>
+        <li>📈 <span data-i18n="aboutF3">Rate history charts</span></li>
+        <li>🔔 <span data-i18n="aboutF4">Price alert notifications</span></li>
+        <li>⚡ <span data-i18n="aboutF5">Works offline (PWA)</span></li>
+        <li>🇩🇿 <span data-i18n="aboutF6">Algerian parallel market rates</span></li>
+      </ul>
+      <p class="about-version">v4.2 — Global Money © 2026</p>
+    </div>
+  </div>
+</div>
+
+<!-- App Shell -->
+<!-- Live Ticker Bar — items injected dynamically by js/ticker.js (buildTickerDOM) -->
+<div id="tickerBar" aria-label="Live market prices" aria-live="polite">
+  <div class="ticker-track" id="tickerTrack">
+    <!-- Populated dynamically by js/ticker.js to avoid HTML duplication -->
+  </div>
+</div>
+
+<!-- Ticker last-updated stamp -->
+<div id="tickerMeta" style="text-align:center;font-size:0.65rem;color:var(--text-muted,#888);padding:2px 0 0;background:var(--bg-ticker,#0a0a1a);">
+  🕐 <span data-i18n="tickerUpdatedLabel">Updated:</span> <span id="tickerUpdated">—</span>
+</div>
+<div id="dataStatusBar" style="display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap;font-size:0.6rem;padding:3px 8px;background:var(--bg-ticker,#0a0a1a);border-top:1px solid rgba(255,255,255,0.05);"></div>
+
+
+<!-- Toast Notifications -->
+<div id="toastContainer" role="status" aria-live="polite"></div>
+
+<div class="app-shell">
+
+  <!-- Top Header (mobile) -->
+  <header class="top-header">
+    <button id="menuBtn" class="menu-btn" aria-label="Menu">
+      <svg viewBox="0 0 24 24" width="22" height="22"><path d="M4 6h16M4 12h16M4 18h16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+    </button>
+    <div class="header-brand">
+      <img src="logo.png" alt="GM" class="header-logo">
+      <span>Global <strong>Money</strong></span>
+    </div>
+    <button id="headerInstallBtn" class="header-icon-btn" aria-label="Install app" style="display:none;" title="Install App">
+      📲
+    </button>
+    <button id="headerThemeBtn" class="header-icon-btn" aria-label="Toggle theme">
+      <svg viewBox="0 0 24 24" width="20" height="20" id="headerThemeIcon"><path d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" stroke="currentColor" stroke-width="2" fill="none"/></svg>
+    </button>
+  </header>
+
+  <!-- Pages -->
+  <main class="pages-wrap">
+
+    <!-- PAGE: Home -->
+    <div class="page active" id="page-home">
+      <div class="page-hero">
+        <div class="hero-content">
+          <h1 class="hero-title" data-i18n="heroTitle">أسعار العملات الحية</h1>
+          <p class="hero-sub" data-i18n="heroSub">حوّل 160+ عملة وكريبتو فورًا</p>
+        </div>
+        <div class="hero-cards-grid">
+          <div class="home-card" data-nav="converter">
+            <div class="home-card-icon blue">⇄</div>
+            <div>
+              <div class="home-card-title" data-i18n="navConverter">محوّل</div>
+              <div class="home-card-desc" data-i18n="homeConverterDesc">حوّل أي عملة</div>
+            </div>
+          </div>
+          <div class="home-card" data-nav="crypto">
+            <div class="home-card-icon orange">₿</div>
+            <div>
+              <div class="home-card-title" data-i18n="navCrypto">كريبتو</div>
+              <div class="home-card-desc" data-i18n="homeCryptoDesc">بيتكوين، إيثيريوم والمزيد</div>
+            </div>
+          </div>
+          <div class="home-card" data-nav="trends">
+            <div class="home-card-icon green">📈</div>
+            <div>
+              <div class="home-card-title" data-i18n="navTrends">الرسوم البيانية</div>
+              <div class="home-card-desc" data-i18n="homeTrendsDesc">مخططات تاريخ الأسعار</div>
+            </div>
+          </div>
+          <div class="home-card" data-nav="compare">
+            <div class="home-card-icon purple">⚖️</div>
+            <div>
+              <div class="home-card-title" data-i18n="navCompare">مقارنة</div>
+              <div class="home-card-desc" data-i18n="homeCompareDesc">مقارنة جنبًا إلى جنب</div>
+            </div>
+          </div>
+          <div class="home-card" data-nav="metals">
+            <div class="home-card-icon" style="background:linear-gradient(135deg,#f0c04022,#f0c04011);color:#c89010;font-size:1.3rem;">🥇</div>
+            <div>
+              <div class="home-card-title" data-i18n="navMetals">المعادن</div>
+              <div class="home-card-desc" data-i18n="homeMetalsDesc">الذهب والفضة والبلاتين والمزيد</div>
+            </div>
+          </div>
+          <div class="home-card" data-nav="blackmarket">
+            <div class="home-card-icon dark">🏪</div>
+            <div>
+              <div class="home-card-title" data-i18n="navBlackMarket">السوق الموازية</div>
+              <div class="home-card-desc" data-i18n="homeBlackMarketDesc">سعر الصرف الموازي</div>
+            </div>
+          </div>
+          <div class="home-card" data-nav="alerts">
+            <div class="home-card-icon red">🔔</div>
+            <div>
+              <div class="home-card-title" data-i18n="navAlerts">تنبيهات</div>
+              <div class="home-card-desc" data-i18n="homeAlertsDesc">ضع تنبيهات للأسعار</div>
+            </div>
+          </div>
+          <div class="home-card" data-nav="portfolio">
+            <div class="home-card-icon green">💼</div>
+            <div>
+              <div class="home-card-title" data-i18n="navPortfolio">المحفظة</div>
+              <div class="home-card-desc" data-i18n="homePortfolioDesc">Track assets & P&amp;L</div>
+            </div>
+          </div>
+          <div class="home-card" data-nav="favorites">
+            <div class="home-card-icon" style="background:linear-gradient(135deg,#f59e0b22,#f59e0b11);color:#d97706;font-size:1.3rem;">⭐</div>
+            <div>
+              <div class="home-card-title" data-i18n="navFavorites">المفضلة</div>
+              <div class="home-card-desc" data-i18n="homeFavoritesDesc">عملاتك المفضلة</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Market Status Section -->
+      <div class="section-block" id="marketStatusSection" style="padding:0 16px 12px;">
+        <h3 class="section-label" data-i18n="marketStatusTitle">حالة السوق</h3>
+        <div class="market-status-grid" id="marketStatusGrid">
+          <div class="mstatus-card">
+            <span class="mstatus-dot" id="forexDot"></span>
+            <span class="mstatus-name">Forex</span>
+            <span class="mstatus-val" id="forexStatus">—</span>
+          </div>
+          <div class="mstatus-card">
+            <span class="mstatus-dot mstatus-open"></span>
+            <span class="mstatus-name">Crypto</span>
+            <span class="mstatus-val">24/7 Open</span>
+          </div>
+          <div class="mstatus-card">
+            <span class="mstatus-dot" id="metalsDot"></span>
+            <span class="mstatus-name">Metals</span>
+            <span class="mstatus-val" id="metalsStatus">—</span>
+          </div>
+          <div class="mstatus-card">
+            <span class="mstatus-dot mstatus-open"></span>
+            <span class="mstatus-name">DZD Parallel</span>
+            <span class="mstatus-val">Updated</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Top Movers Section -->
+      <div class="section-block" id="topMoversSection" style="padding:0 16px 16px;">
+        <h3 class="section-label" data-i18n="topMoversTitle">أكثر العملات تحركًا</h3>
+        <div id="topMoversGrid" class="top-movers-grid">
+          <p style="color:var(--text-secondary);font-size:.85rem;text-align:center;padding:12px 0;">Loading…</p>
+        </div>
+      </div>
+
+    </div>
+    <div class="page" id="page-converter">
+      <div class="page-inner">
+        <div class="page-title-row">
+          <button class="page-back-btn" onclick="window.__gmGoHome()" aria-label="Close" class="page-close-btn">&#10005;</button>
+          <h2 class="page-title" data-i18n="navConverter">محوّل العملات</h2>
+          <span class="page-badge fiat-badge">FIAT</span>
+        </div>
+        <div class="card converter-card">
+          <div class="amount-wrap">
+            <input type="number" id="amount" value="" min="0" placeholder="0">
+            <span class="amount-label" id="fromLabel">USD</span>
+          </div>
+          <div class="currency-box">
+            <div class="currency-col">
+              <div class="currency-select" id="fromBox">
+                <img id="fromFlag" src="" alt="">
+                <div class="sel-text">
+                  <span id="fromCode">USD</span>
+                  <span id="fromName" class="cur-name">US Dollar</span>
+                </div>
+                <span class="sel-arrow">▾</span>
+              </div>
+              <div class="cur-search-wrap">
+                <input type="text" class="cur-search-input" id="fromSearchInput" placeholder="Search…">
+                <div class="cur-dropdown" id="fromDropdown"></div>
+              </div>
+            </div>
+            <button id="swapBtn" title="Swap">⇄</button>
+            <div class="currency-col">
+              <div class="currency-select" id="toBox">
+                <img id="toFlag" src="" alt="">
+                <div class="sel-text">
+                  <span id="toCode">DZD</span>
+                  <span id="toName" class="cur-name">Algerian Dinar</span>
+                </div>
+                <span class="sel-arrow">▾</span>
+              </div>
+              <div class="cur-search-wrap">
+                <input type="text" class="cur-search-input" id="toSearchInput" placeholder="Search…">
+                <div class="cur-dropdown" id="toDropdown"></div>
+              </div>
+            </div>
+          </div>
+          <div class="fav-bar" id="favBar">
+            <span class="fav-label">⭐</span>
+            <div class="fav-chips" id="favChips"></div>
+            <button id="manageFavBtn" data-i18n="manage">✎ تعديل</button>
+          </div>
+          <button id="convertBtn" class="primary-btn" data-i18n="convert">تحويل</button>
+          <div id="result"></div>
+          <div id="rateInfo"></div>
+          <div id="updated"></div>
+          <div class="pct-calc" id="pctCalc" style="display:none">
+            <span class="pct-title" data-i18n="pctTitle">% Calculator</span>
+            <div class="pct-row">
+              <input type="number" id="pctInput" placeholder="%" min="0" max="100" value="10">
+              <span id="pctResult">—</span>
+            </div>
+          </div>
+          <div class="action-btns">
+            <button id="copyBtn" style="display:none" data-i18n="copy">📋 Copy</button>
+            <button id="shareBtn" data-i18n="share">➦ مشاركة</button>
+            <button id="printBtn" data-i18n="print">🖨️ طباعة</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PAGE: Black Market (السوق الموازية) -->
+    <div class="page" id="page-blackmarket">
+      <div class="page-inner">
+        <div class="page-title-row">
+          <button class="page-back-btn" onclick="window.__gmGoHome()" aria-label="Close" class="page-close-btn">&#10005;</button>
+          <h2 class="page-title" data-i18n="navBlackMarket">السوق الموازية</h2>
+          <span class="page-badge bm-badge">DZD</span>
+        </div>
+        <!-- Info Card -->
+        <div class="card bm-info-card">
+          <div class="bm-info-icon">🇩🇿</div>
+          <div class="bm-info-text">
+            <strong data-i18n="bmInfoTitle">السوق الموازية — الدينار الجزائري</strong>
+            <p data-i18n="bmInfoDesc">أسعار السوق الموازية (السوداء) مقارنةً بالسعر الرسمي. يُحدَّث يدوياً بناءً على متوسط السوق.</p>
+          </div>
+        </div>
+        <!-- Rate Cards -->
+        <div id="bmRateCards" class="bm-rate-grid"></div>
+        <!-- Comparison Table -->
+        <div class="card" style="margin-top:16px">
+          <div class="card-header">
+            <h3 data-i18n="bmCompareTitle">مقارنة الأسعار</h3>
+            <span class="bm-live-badge" data-i18n="bmUpdated">⏱ مُحدَّث</span>
+          </div>
+          <div id="bmCompareTable"></div>
+        </div>
+        <!-- Calculator -->
+        <div class="card" style="margin-top:16px">
+          <div class="card-header">
+            <h3 data-i18n="bmCalcTitle">حاسبة السوق الموازية</h3>
+          </div>
+          <div class="bm-calc-wrap">
+            <div class="bm-calc-row">
+              <input type="number" id="bmAmount" placeholder="0" min="0" value="100">
+              <select id="bmCurrency">
+                <option value="USD">🇺🇸 USD</option>
+                <option value="EUR">🇪🇺 EUR</option>
+                <option value="GBP">🇬🇧 GBP</option>
+                <option value="SAR">🇸🇦 SAR</option>
+                <option value="AED">🇦🇪 AED</option>
+                <option value="CAD">🇨🇦 CAD</option>
+              </select>
+            </div>
+            <div class="bm-result-row">
+              <div class="bm-result-item official">
+                <div class="bm-result-label" data-i18n="bmOfficial">رسمي</div>
+                <div class="bm-result-value" id="bmOfficialResult">—</div>
+                <div class="bm-result-sub">DZD</div>
+              </div>
+              <div class="bm-vs">VS</div>
+              <div class="bm-result-item parallel">
+                <div class="bm-result-label" data-i18n="bmParallel">موازي</div>
+                <div class="bm-result-value" id="bmParallelResult">—</div>
+                <div class="bm-result-sub">DZD</div>
+              </div>
+            </div>
+            <div id="bmDiffNote" class="bm-diff-note"></div>
+          </div>
+        </div>
+        <p class="bm-disclaimer" data-i18n="bmDisclaimer">⚠️ هذه الأسعار للأغراض المعلوماتية فقط. السوق الموازية غير رسمية.</p>
+      </div>
+    </div>
+
+    <!-- PAGE: Crypto -->
+    <div class="page" id="page-crypto">
+      <div class="page-inner">
+        <div class="page-title-row">
+          <button class="page-back-btn" onclick="window.__gmGoHome()" aria-label="Close" class="page-close-btn">&#10005;</button>
+          <h2 class="page-title" data-i18n="navCrypto">العملات الرقمية</h2>
+          <span class="page-badge crypto-badge">LIVE</span>
+        </div>
+        <div class="card converter-card">
+          <div class="amount-wrap">
+            <input type="number" id="cryptoAmount" value="" min="0" placeholder="0">
+            <span class="amount-label" id="cryptoFromLabel">BTC</span>
+          </div>
+          <div class="currency-box">
+            <div class="currency-col">
+              <div class="currency-select" id="cryptoFromBox">
+                <span class="crypto-icon-lg" id="cryptoFromIcon">₿</span>
+                <div class="sel-text">
+                  <span id="cryptoFromCode">BTC</span>
+                  <span id="cryptoFromName" class="cur-name">Bitcoin</span>
+                </div>
+                <span class="sel-arrow">▾</span>
+              </div>
+              <div class="cur-search-wrap">
+                <input type="text" class="cur-search-input" id="cryptoFromSearch" placeholder="Search…">
+                <div class="cur-dropdown" id="cryptoFromDropdown"></div>
+              </div>
+            </div>
+            <button id="cryptoSwapBtn">⇄</button>
+            <div class="currency-col">
+              <div class="currency-select" id="cryptoToBox">
+                <span class="crypto-icon-lg" id="cryptoToIcon">₮</span>
+                <div class="sel-text">
+                  <span id="cryptoToCode">USDT</span>
+                  <span id="cryptoToName" class="cur-name">Tether</span>
+                </div>
+                <span class="sel-arrow">▾</span>
+              </div>
+              <div class="cur-search-wrap">
+                <input type="text" class="cur-search-input" id="cryptoToSearch" placeholder="Search…">
+                <div class="cur-dropdown" id="cryptoToDropdown"></div>
+              </div>
+            </div>
+          </div>
+          <button id="cryptoConvertBtn" class="primary-btn crypto-btn" data-i18n="convert">تحويل</button>
+          <div id="cryptoResult"></div>
+          <div id="cryptoRateInfo"></div>
+        </div>
+        <div class="card" id="cryptoPricesCard">
+          <div class="card-header">
+            <h3 data-i18n="cryptoPricesTitle">أسعار العملات الرقمية الحية (USD)</h3>
+            <span class="refresh-badge">🔄 Auto</span>
+          </div>
+          <div id="cryptoPriceList"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PAGE: Trends -->
+    <div class="page" id="page-trends">
+      <div class="page-inner" style="padding:0; max-width:100%;">
+        <div class="page-title-row" style="padding: 16px 16px 0;">
+          <button class="page-back-btn" onclick="window.__gmGoHome()" aria-label="Close" class="page-close-btn">&#10005;</button>
+          <h2 class="page-title" data-i18n="navTrends">الرسوم البيانية</h2>
+        </div>
+
+        <!-- Chart Mode Tabs -->
+        <div id="chartModeTabs" style="display:flex;gap:8px;padding:10px 16px;overflow-x:auto;">
+          <button class="chart-mode-btn active" data-mode="lightweight" onclick="switchChartMode('lightweight')">📈 خفيف</button>
+          <button class="chart-mode-btn" data-mode="tradingview" onclick="switchChartMode('tradingview')">🔴 TradingView Live</button>
+        </div>
+
+        <!-- Top Bar: Pair + Timeframe + Chart Type -->
+        <div id="chartControlBar" style="display:flex;flex-wrap:wrap;gap:8px;padding:0 16px 10px;align-items:center;">
+          <select id="chartPairSel" class="chart-ctrl-sel" onchange="onChartPairChange()">
+            <optgroup label="— Forex —">
+              <option value="FOREX:USD-EUR">USD / EUR</option>
+              <option value="FOREX:USD-GBP">USD / GBP</option>
+              <option value="FOREX:USD-JPY">USD / JPY</option>
+              <option value="FOREX:USD-CHF">USD / CHF</option>
+              <option value="FOREX:EUR-GBP">EUR / GBP</option>
+              <option value="FOREX:EUR-JPY">EUR / JPY</option>
+              <option value="FOREX:GBP-JPY">GBP / JPY</option>
+              <option value="FOREX:USD-CAD">USD / CAD</option>
+              <option value="FOREX:USD-AUD">USD / AUD</option>
+              <option value="FOREX:USD-NZD">USD / NZD</option>
+              <option value="FOREX:USD-CNY">USD / CNY</option>
+              <option value="FOREX:USD-TRY">USD / TRY</option>
+              <option value="FOREX:USD-MAD">USD / MAD</option>
+            </optgroup>
+            <optgroup label="— Crypto —">
+              <option value="CRYPTO:BTC-USD">BTC / USD</option>
+              <option value="CRYPTO:ETH-USD">ETH / USD</option>
+              <option value="CRYPTO:BNB-USD">BNB / USD</option>
+              <option value="CRYPTO:XRP-USD">XRP / USD</option>
+              <option value="CRYPTO:SOL-USD">SOL / USD</option>
+              <option value="CRYPTO:ADA-USD">ADA / USD</option>
+              <option value="CRYPTO:DOGE-USD">DOGE / USD</option>
+            </optgroup>
+            <optgroup label="— Metals —">
+              <option value="METALS:XAU-USD">Gold (XAU) / USD</option>
+              <option value="METALS:XAG-USD">Silver (XAG) / USD</option>
+            </optgroup>
+            <optgroup label="— DZD (Parallel) —">
+              <option value="DZD:USD-DZD">USD / DZD</option>
+              <option value="DZD:EUR-DZD">EUR / DZD</option>
+              <option value="DZD:GBP-DZD">GBP / DZD</option>
+              <option value="DZD:SAR-DZD">SAR / DZD</option>
+              <option value="DZD:AED-DZD">AED / DZD</option>
+              <option value="DZD:CAD-DZD">CAD / DZD</option>
+            </optgroup>
+          </select>
+          <div id="tfBtns" style="display:flex;gap:4px;flex-wrap:wrap;">
+            <button class="tf-btn active" data-tf="1m" onclick="setChartTF('1m')">1M</button>
+            <button class="tf-btn" data-tf="5m" onclick="setChartTF('5m')">5M</button>
+            <button class="tf-btn" data-tf="15m" onclick="setChartTF('15m')">15M</button>
+            <button class="tf-btn" data-tf="30m" onclick="setChartTF('30m')">30M</button>
+            <button class="tf-btn" data-tf="1h" onclick="setChartTF('1h')">1H</button>
+            <button class="tf-btn" data-tf="4h" onclick="setChartTF('4h')">4H</button>
+            <button class="tf-btn" data-tf="1d" onclick="setChartTF('1d')">1D</button>
+          </div>
+          <div id="chartTypeBtns" style="display:flex;gap:4px;">
+            <button class="ct-btn active" data-ct="line" onclick="setChartType('line')">📉 Line</button>
+            <button class="ct-btn" data-ct="candlestick" onclick="setChartType('candlestick')">🕯️ Candle</button>
+          </div>
+        </div>
+
+        <!-- Price Info Bar -->
+        <div id="priceInfoBar" style="display:flex;flex-wrap:wrap;gap:12px;padding:0 16px 10px;">
+          <div class="pi-item"><span class="pi-label">Price</span><span id="pi-price" class="pi-val">—</span></div>
+          <div class="pi-item"><span class="pi-label">24H High</span><span id="pi-high" class="pi-val pi-green">—</span></div>
+          <div class="pi-item"><span class="pi-label">24H Low</span><span id="pi-low" class="pi-val pi-red">—</span></div>
+          <div class="pi-item"><span class="pi-label">24H Change</span><span id="pi-change" class="pi-val">—</span></div>
+          <div class="pi-item" id="pi-update-wrap"><span class="pi-label">Updated</span><span id="pi-updated" class="pi-val">—</span></div>
+        </div>
+
+        <!-- Lightweight Chart Container -->
+        <div id="lwChartWrap" style="display:none;padding:0 16px 16px;">
+          <div id="lwChartContainer" style="width:100%;height:420px;border-radius:12px;overflow:hidden;"></div>
+          <p id="lwChartNote" class="card-sub" style="margin-top:8px;text-align:center;font-size:0.8em;opacity:0.6;"></p>
+        </div>
+
+        <!-- TradingView Widget Container -->
+        <div id="tvChartWrap" style="padding:0 16px 16px;">
+          <div id="tvWidgetContainer" style="width:100%;height:500px;border-radius:12px;overflow:hidden;"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PAGE: Compare -->
+    <div class="page" id="page-compare">
+      <div class="page-inner">
+        <div class="page-title-row">
+          <button class="page-back-btn" onclick="window.__gmGoHome()" aria-label="Close" class="page-close-btn">&#10005;</button>
+          <h2 class="page-title" data-i18n="navCompare">مقارنة</h2>
+        </div>
+        <div class="card">
+          <p class="card-sub" data-i18n="compareSub">Compare two currencies vs your base</p>
+          <div class="compare-row">
+            <select id="cmpA" class="cmp-select"></select>
+            <span class="vs-badge">VS</span>
+            <select id="cmpB" class="cmp-select"></select>
+          </div>
+          <div id="compareResult"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PAGE: Quick Rates -->
+    <div class="page" id="page-rates">
+      <style>#page-rates{display:none!important}</style>
+      <div class="page-inner">
+        <div class="page-title-row">
+          <button class="page-back-btn" onclick="window.__gmGoHome()" aria-label="Close" class="page-close-btn">&#10005;</button>
+          <h2 class="page-title" data-i18n="navRates">أسعار سريعة</h2>
+          <span class="refresh-badge">🔄 Auto</span>
+        </div>
+        <div class="card">
+          <p class="card-sub" data-i18n="multiSub">Value of your amount in top currencies</p>
+          <div id="multiTable"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PAGE: Alerts -->
+    <div class="page" id="page-alerts">
+      <div class="page-inner">
+        <div class="page-title-row">
+          <button class="page-back-btn" onclick="window.__gmGoHome()" aria-label="Close" class="page-close-btn">&#10005;</button>
+          <h2 class="page-title" data-i18n="navAlerts">تنبيهات الأسعار</h2>
+        </div>
+        <div class="card">
+          <p class="card-sub" data-i18n="alertSub">Notify me when the rate reaches a target</p>
+          <div class="alert-row">
+            <span id="alertPair" class="alert-pair-label">USD → DZD</span>
+            <input type="number" id="alertTarget" placeholder="Target rate" min="0">
+            <select id="alertDir">
+              <option value="above">Above ↑</option>
+              <option value="below">Below ↓</option>
+            </select>
+            <button id="setAlertBtn" class="primary-btn sm" data-i18n="setAlert">تفعيل التنبيه</button>
+          </div>
+          <div id="alertsList"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PAGE: History -->
+    <div class="page" id="page-history">
+      <div class="page-inner">
+        <div class="page-title-row">
+          <button class="page-back-btn" onclick="window.__gmGoHome()" aria-label="Close" class="page-close-btn">&#10005;</button>
+          <h2 class="page-title" data-i18n="navHistory">السجل</h2>
+          <button id="clearHistBtn" class="ghost-btn" data-i18n="clear">مسح</button>
+        </div>
+        <div class="card">
+          <div id="historyList"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PAGE: Favorites -->
+    <div class="page" id="page-favorites">
+      <div class="page-inner">
+        <div class="page-title-row">
+          <button class="page-back-btn" onclick="window.__gmGoHome()" aria-label="Close" class="page-close-btn">&#10005;</button>
+          <h2 class="page-title" data-i18n="navFavorites">المفضلة</h2>
+          <button id="saveFavBtn" class="primary-btn sm" data-i18n="saveFav">💾 حفظ</button>
+        </div>
+        <div class="card">
+          <p class="card-sub" data-i18n="manageFavSub">Select up to 8 currencies to pin</p>
+          <div id="favPickerList"></div>
+        </div>
+      </div>
+    </div>
+
+
+    <!-- PAGE: Precious Metals -->
+    <div class="page" id="page-metals">
+      <div class="page-inner">
+        <div class="page-title-row">
+          <button class="page-back-btn" onclick="window.__gmGoHome()" aria-label="Close" class="page-close-btn">&#10005;</button>
+          <h2 class="page-title" data-i18n="navMetals">المعادن الثمينة</h2>
+          <span class="page-badge metals-badge">LIVE</span>
+        </div>
+        <div class="card metals-info-card">
+          <div class="metals-info-icon">🥇</div>
+          <div class="metals-info-text">
+            <strong data-i18n="metalsInfoTitle">Precious Metals & Commodities</strong>
+            <p data-i18n="metalsInfoDesc">Live spot prices for gold, silver, platinum, and palladium in USD per troy ounce.</p>
+          </div>
+        </div>
+        <div id="metalsDataStatus" class="metals-data-status" style="display:none"></div>
+        <div id="metalsGrid" class="metals-grid"></div>
+        <div class="card" style="margin-top:16px">
+          <div class="card-header">
+            <h3 data-i18n="metalsCalcTitle">Metals Calculator</h3>
+          </div>
+          <div class="metals-calc-wrap">
+            <div class="metals-calc-row">
+              <input type="number" id="metalsAmount" placeholder="0" min="0" value="1">
+              <select id="metalsUnit">
+                <option value="oz" data-i18n="metalsOz">Troy Oz</option>
+                <option value="g" data-i18n="metalsGram">Gram</option>
+                <option value="kg" data-i18n="metalsKg">Kilogram</option>
+              </select>
+              <select id="metalsCurrency">
+                <option value="USD">USD</option>
+                <option value="EUR">EUR</option>
+                <option value="DZD">DZD</option>
+                <option value="GBP">GBP</option>
+                <option value="SAR">SAR</option>
+                <option value="AED">AED</option>
+              </select>
+            </div>
+            <div id="metalsCalcResult" class="metals-calc-result"></div>
+          </div>
+        </div>
+        <p id="metalsUpdated" class="metals-updated-note"></p>
+      </div>
+    </div>
+
+    <!-- PAGE: Contact Us -->
+    <div class="page" id="page-contact">
+      <div class="page-inner">
+        <div class="page-title-row">
+          <button class="page-back-btn" onclick="window.__gmGoHome()" aria-label="Close" class="page-close-btn">&#10005;</button>
+          <h2 class="page-title" data-i18n="contactUs">اتصل بنا</h2>
+        </div>
+        <div class="card contact-card">
+          <div class="contact-header">
+            <div class="contact-icon-wrap">✉️</div>
+            <div>
+              <h3 data-i18n="contactTitle">Get in Touch</h3>
+              <p data-i18n="contactSubtitle">We'd love to hear from you</p>
+            </div>
+          </div>
+          <div class="contact-direct">
+            <a href="mailto:globalmoneyspace@gmail.com" class="contact-email-link">
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+              globalmoneyspace@gmail.com
+            </a>
+          </div>
+          <!-- Notice: form uses mailto — will open email client -->
+          <div class="contact-mailto-notice" id="contactMailtoNotice">
+            <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            <span data-i18n="contactMailtoNotice">سيتم فتح تطبيق البريد الإلكتروني لإرسال الرسالة.</span>
+          </div>
+          <form id="contactForm" class="contact-form" novalidate>
+            <div class="form-group">
+              <label for="contactName" data-i18n="contactName">الاسم</label>
+              <input type="text" id="contactName" data-i18n-placeholder="contactNamePlaceholder" placeholder="Your name" required>
+              <span class="field-error" id="nameError"></span>
+            </div>
+            <div class="form-group">
+              <label for="contactEmail" data-i18n="contactEmailLabel">البريد الإلكتروني</label>
+              <input type="email" id="contactEmail" data-i18n-placeholder="contactEmailPlaceholder" placeholder="your@email.com" required>
+              <span class="field-error" id="emailError"></span>
+            </div>
+            <div class="form-group">
+              <label for="contactSubject" data-i18n="contactSubjectLabel">الموضوع</label>
+              <input type="text" id="contactSubject" data-i18n-placeholder="contactSubjectPlaceholder" placeholder="How can we help?" required>
+              <span class="field-error" id="subjectError"></span>
+            </div>
+            <div class="form-group">
+              <label for="contactMessage" data-i18n="contactMessageLabel">الرسالة</label>
+              <textarea id="contactMessage" rows="5" data-i18n-placeholder="contactMessagePlaceholder" placeholder="Write your message here…" required></textarea>
+              <span class="field-error" id="messageError"></span>
+            </div>
+            <button type="submit" class="primary-btn contact-submit-btn" id="contactSubmitBtn">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg>
+              <span data-i18n="contactSend">إرسال الرسالة</span>
+            </button>
+          </form>
+          <div id="contactStatus" class="contact-status" style="display:none"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PAGE: About Us -->
+    <div class="page" id="page-about">
+      <div class="page-inner about-page-inner">
+        <div class="about-hero">
+          <img src="logo.png" alt="Global Money" class="about-hero-logo">
+          <h1 class="about-hero-title">Global Money</h1>
+          <p class="about-hero-tagline" data-i18n="aboutTagline">Your world. Your rates. Instantly.</p>
+        </div>
+        <div class="card about-section-card">
+          <h3 data-i18n="aboutProjectTitle">About the Project</h3>
+          <p data-i18n="aboutDesc">Global Money is a free, fast, and reliable currency converter for 160+ currencies and major cryptocurrencies. Built for travelers, traders, and everyday users who need instant, accurate exchange rates — even offline.</p>
+        </div>
+        <div class="about-two-col">
+          <div class="card about-mini-card">
+            <div class="about-mini-icon">🎯</div>
+            <h4 data-i18n="aboutVisionTitle">Vision</h4>
+            <p data-i18n="aboutVisionDesc">To become the world's most trusted and accessible financial rates platform — available to everyone, everywhere, for free.</p>
+          </div>
+          <div class="card about-mini-card">
+            <div class="about-mini-icon">🚀</div>
+            <h4 data-i18n="aboutMissionTitle">Mission</h4>
+            <p data-i18n="aboutMissionDesc">Empower individuals with instant, accurate, and transparent financial data — regardless of location or device.</p>
+          </div>
+        </div>
+        <div class="card about-section-card">
+          <h3 data-i18n="aboutFeaturesTitle">Key Features</h3>
+          <ul class="about-features-full">
+            <li><span class="af-icon">🌍</span><span data-i18n="aboutF1">160+ world currencies</span></li>
+            <li><span class="af-icon">₿</span><span data-i18n="aboutF2">Live crypto prices</span></li>
+            <li><span class="af-icon">📈</span><span data-i18n="aboutF3">Rate history charts</span></li>
+            <li><span class="af-icon">🔔</span><span data-i18n="aboutF4">Price alert notifications</span></li>
+            <li><span class="af-icon">⚡</span><span data-i18n="aboutF5">Works offline (PWA)</span></li>
+            <li><span class="af-icon">🇩🇿</span><span data-i18n="aboutF6">Algerian parallel market rates</span></li>
+            <li><span class="af-icon">🥇</span><span data-i18n="aboutF7">Precious metals & commodities</span></li>
+            <li><span class="af-icon">🌙</span><span data-i18n="aboutF8">Dark mode & multilingual</span></li>
+          </ul>
+        </div>
+        <div class="card about-section-card about-social-card">
+          <h3 data-i18n="aboutSocialTitle">Connect With Us</h3>
+          <div class="about-social-links">
+            <a href="mailto:globalmoneyspace@gmail.com" class="about-social-item email">
+              <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+              <span>globalmoneyspace@gmail.com</span>
+            </a>
+          </div>
+        </div>
+        <p class="about-version-full">v4.2 — Global Money © 2026</p>
+      </div>
+    </div>
+
+    <!-- ══ Portfolio Tracker ══ -->
+    <div class="page" id="page-portfolio">
+      <div class="page-inner">
+        <div class="page-title-row">
+          <button onclick="window.__gmGoHome()" aria-label="Close" class="page-close-btn">&#10005;</button>
+          <h2 class="page-title" data-i18n="navPortfolio">المحفظة</h2>
+          <span class="page-badge" style="background:linear-gradient(135deg,#22c55e22,#22c55e11);color:#16a34a;">USD</span>
+        </div>
+      </div>
+      <div id="portfolioContainer" class="portfolio-page-wrap"></div>
+    </div>
+
+    <!-- ══ Watchlist ══ -->
+    <div class="page" id="page-watchlist" style="display:none">
+      <div class="page-inner">
+        <div class="page-title-row">
+          <button onclick="window.__gmGoHome()" aria-label="Close" class="page-close-btn">&#10005;</button>
+          <h2 class="page-title" data-i18n="navWatchlist">Watchlist</h2>
+        </div>
+      </div>
+      <div id="watchlistContainer" class="watchlist-page-wrap"></div>
+    </div>
+
+  </main>
+
+  <!-- Bottom Navigation -->
+  <nav class="bottom-nav">
+    <a href="#" class="bnav-item active" data-page="home">
+      <svg viewBox="0 0 24 24"><path d="M3 9.5L12 3l9 6.5V21H3V9.5z"/></svg>
+      <span data-i18n="navHome">Home</span>
+    </a>
+    <a href="#" class="bnav-item" data-page="converter">
+      <svg viewBox="0 0 24 24"><path d="M7 16V4m0 0L3 8m4-4l4 4M17 8v12m0 0l4-4m-4 4l-4-4"/></svg>
+      <span data-i18n="navConverter">Converter</span>
+    </a>
+    <a href="#" class="bnav-item" data-page="crypto">
+      <svg viewBox="0 0 24 24"><path d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+      <span data-i18n="navCrypto">Crypto</span>
+    </a>
+    <a href="#" class="bnav-item" data-page="trends">
+      <svg viewBox="0 0 24 24"><path d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg>
+      <span data-i18n="navTrends">Charts</span>
+    </a>
+    <a href="#" class="bnav-item" data-page="metals">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6L12 2z"/></svg>
+      <span data-i18n="navMetals">Metals</span>
+    </a>
+    <a href="#" class="bnav-item" data-page="portfolio">
+      <svg viewBox="0 0 24 24"><path d="M3 3h18v4H3zM3 10h11v11H3zM16 10h5v5h-5zM16 17h5v4h-5z"/></svg>
+      <span data-i18n="navPortfolio">محفظة</span>
+    </a>
+  </nav>
+
+</div><!-- /.app-shell -->
+
+<!-- Print area -->
+<div id="printArea">
+  <img src="logo.png" alt="Global Money" style="width:60px">
+  <h2>Global Money</h2>
+  <div id="printContent"></div>
+  <p id="printTime"></p>
+</div>
+
+<script type="module" src="js/app.js"></script>
+<script type="module" src="js/ticker.js"></script>
+</body>
+</html>

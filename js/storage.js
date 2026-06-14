@@ -2,7 +2,7 @@
 //  Global Money — js/storage.js
 // ═══════════════════════════════════════════════
 
-export const CACHE_DURATION = 5 * 60 * 1000;
+export const CACHE_DURATION = 30 * 60 * 1000; // 30 minutes — persist across page navigation
 
 export const countryMap = {
   USD:"us",EUR:"eu",GBP:"gb",JPY:"jp",CHF:"ch",CAD:"ca",AUD:"au",NZD:"nz",
@@ -38,24 +38,24 @@ export const currencyNames = {
 };
 
 export const CRYPTOS = {
-  BTC:  { name:"Bitcoin",       id:"bitcoin",           icon:"₿" },
-  ETH:  { name:"Ethereum",      id:"ethereum",          icon:"Ξ" },
-  BNB:  { name:"BNB",           id:"binancecoin",       icon:"◆" },
-  SOL:  { name:"Solana",        id:"solana",            icon:"◎" },
-  XRP:  { name:"XRP",           id:"ripple",            icon:"✕" },
-  ADA:  { name:"Cardano",       id:"cardano",           icon:"₳" },
-  DOGE: { name:"Dogecoin",      id:"dogecoin",          icon:"Ð" },
-  USDT: { name:"Tether",        id:"tether",            icon:"₮" },
-  MATIC:{ name:"Polygon (MATIC)",id:"matic-network",    icon:"⬡" },
-  DOT:  { name:"Polkadot",      id:"polkadot",          icon:"●" },
-  AVAX: { name:"Avalanche",     id:"avalanche-2",       icon:"🔺" },
-  LINK: { name:"Chainlink",     id:"chainlink",         icon:"🔗" },
-  UNI:  { name:"Uniswap",       id:"uniswap",           icon:"🦄" },
-  LTC:  { name:"Litecoin",      id:"litecoin",          icon:"Ł" },
-  ATOM: { name:"Cosmos",        id:"cosmos",            icon:"⚛" },
-  TRX:  { name:"TRON",          id:"tron",              icon:"⟁" },
-  SHIB: { name:"Shiba Inu",     id:"shiba-inu",         icon:"🐕" },
-  NEAR: { name:"NEAR Protocol", id:"near",              icon:"Ⓝ" },
+  BTC:  { name:"Bitcoin",        id:"bitcoin",        icon:"₿", logo:"https://assets.coingecko.com/coins/images/1/small/bitcoin.png" },
+  ETH:  { name:"Ethereum",       id:"ethereum",       icon:"Ξ", logo:"https://assets.coingecko.com/coins/images/279/small/ethereum.png" },
+  BNB:  { name:"BNB",            id:"binancecoin",    icon:"◆", logo:"https://assets.coingecko.com/coins/images/825/small/bnb-icon2_2x.png" },
+  SOL:  { name:"Solana",         id:"solana",         icon:"◎", logo:"https://assets.coingecko.com/coins/images/4128/small/solana.png" },
+  XRP:  { name:"XRP",            id:"ripple",         icon:"✕", logo:"https://assets.coingecko.com/coins/images/44/small/xrp-symbol-white-128.png" },
+  ADA:  { name:"Cardano",        id:"cardano",        icon:"₳", logo:"https://assets.coingecko.com/coins/images/975/small/cardano.png" },
+  DOGE: { name:"Dogecoin",       id:"dogecoin",       icon:"Ð", logo:"https://assets.coingecko.com/coins/images/5/small/dogecoin.png" },
+  USDT: { name:"Tether",         id:"tether",         icon:"₮", logo:"https://assets.coingecko.com/coins/images/325/small/Tether.png" },
+  MATIC:{ name:"Polygon (MATIC)",id:"matic-network",  icon:"⬡", logo:"https://assets.coingecko.com/coins/images/4713/small/polygon.png" },
+  DOT:  { name:"Polkadot",       id:"polkadot",       icon:"●", logo:"https://assets.coingecko.com/coins/images/12171/small/polkadot.png" },
+  AVAX: { name:"Avalanche",      id:"avalanche-2",    icon:"🔺",logo:"https://assets.coingecko.com/coins/images/12559/small/Avalanche_Circle_RedWhite_Trans.png" },
+  LINK: { name:"Chainlink",      id:"chainlink",      icon:"🔗",logo:"https://assets.coingecko.com/coins/images/877/small/chainlink-new-logo.png" },
+  UNI:  { name:"Uniswap",        id:"uniswap",        icon:"🦄",logo:"https://assets.coingecko.com/coins/images/12504/small/uniswap-uni.png" },
+  LTC:  { name:"Litecoin",       id:"litecoin",       icon:"Ł", logo:"https://assets.coingecko.com/coins/images/2/small/litecoin.png" },
+  ATOM: { name:"Cosmos",         id:"cosmos",         icon:"⚛", logo:"https://assets.coingecko.com/coins/images/1481/small/cosmos_hub.png" },
+  TRX:  { name:"TRON",           id:"tron",           icon:"⟁", logo:"https://assets.coingecko.com/coins/images/1094/small/tron-logo.png" },
+  SHIB: { name:"Shiba Inu",      id:"shiba-inu",      icon:"🐕",logo:"https://assets.coingecko.com/coins/images/11939/small/shiba.png" },
+  NEAR: { name:"NEAR Protocol",  id:"near",           icon:"Ⓝ", logo:"https://assets.coingecko.com/coins/images/10365/small/near.jpg" },
 };
 
 export const BLACK_MARKET_RATES = {

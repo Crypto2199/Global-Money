@@ -637,10 +637,8 @@ body.dark .bottom-nav { box-shadow:0 -4px 20px rgba(0,0,0,.3); }
   .sidebar-close   { display:none; }
 
   .app-shell {
-    margin-left:var(--sidebar-w);
     padding-bottom:0;
   }
-  [dir="rtl"] .app-shell { margin-left:0; margin-right:var(--sidebar-w); }
 
   .bottom-nav { display:none; }
   .menu-btn   { display:none; }
@@ -1186,13 +1184,18 @@ body.dark .bottom-nav { box-shadow:0 -4px 20px rgba(0,0,0,.3); }
 
 /* Desktop sidebar always visible refinements */
 @media (min-width: 900px) {
-  .sidebar { transform: translateX(0) !important; position: fixed; }
+  .sidebar { transform: translateX(0) !important; position: fixed; left: 0; top: 0; bottom: 0; }
+  [dir="rtl"] .sidebar { left: auto; right: 0; transform: translateX(0) !important; }
   .sidebar-overlay { display: none !important; }
-  .app-shell { padding-left: var(--sidebar-w); }
+  .app-shell {
+    padding-left: var(--sidebar-w);
+    padding-right: 0;
+    min-height: 100vh;
+  }
   [dir="rtl"] .app-shell { padding-left: 0; padding-right: var(--sidebar-w); }
-  [dir="rtl"] .sidebar { transform: translateX(0) !important; }
   .menu-btn { display: none; }
   .bottom-nav { display: none !important; }
+  .top-header { padding-left: 20px; }
 }
 
 /* ── Pro Chart Page ─────────────────────────────── */
@@ -1673,16 +1676,7 @@ a:focus-visible {
   z-index: 1;
 }
 
-/* ── Ticker offset for desktop sidebar ─────────── */
-@media (min-width: 900px) {
-  #tickerBar {
-    padding-left: var(--sidebar-w);
-  }
-  [dir="rtl"] #tickerBar {
-    padding-left: 0;
-    padding-right: var(--sidebar-w);
-  }
-}
+/* ── Ticker offset for desktop sidebar — handled by app-shell padding ─── */
 
 /* ── Fine-tune spacing ─────────────────────────── */
 .page-inner { padding-top: 8px; }
@@ -3288,4 +3282,230 @@ body.dark::before {
 .pf-empty {
   text-align: center; color: var(--text3);
   padding: 40px 20px; font-size: .9rem;
+}
+
+/* ═══════════════════════════════════════════════
+   FAQ Accordion
+═══════════════════════════════════════════════ */
+.faq-intro-card {
+  display: flex; flex-direction: column; align-items: center;
+  text-align: center; padding: 20px 18px !important; margin-bottom: 16px;
+}
+.faq-intro-icon { font-size: 2rem; margin-bottom: 8px; }
+.faq-intro-card p { font-size: .88rem; color: var(--text2); margin: 0; line-height: 1.6; }
+
+.faq-accordion { display: flex; flex-direction: column; gap: 0; margin-bottom: 20px; }
+
+.faq-category {
+  font-size: .72rem; font-weight: 700; letter-spacing: .08em;
+  text-transform: uppercase; color: var(--text3);
+  padding: 18px 4px 8px; margin-top: 6px;
+}
+
+.faq-item {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  margin-bottom: 8px;
+  overflow: hidden;
+  transition: box-shadow .2s;
+}
+.faq-item.open { box-shadow: 0 4px 16px rgba(29,106,255,.08); border-color: var(--accent); }
+
+.faq-question {
+  width: 100%; text-align: start; background: none; border: none;
+  padding: 15px 16px; font-size: .9rem; font-weight: 600;
+  color: var(--text); cursor: pointer; display: flex;
+  justify-content: space-between; align-items: center; gap: 12px;
+  transition: color .2s;
+}
+.faq-question::after {
+  content: '+'; font-size: 1.2rem; font-weight: 400;
+  color: var(--accent); flex-shrink: 0; transition: transform .25s;
+}
+.faq-item.open .faq-question { color: var(--accent); }
+.faq-item.open .faq-question::after { transform: rotate(45deg); }
+
+.faq-answer {
+  max-height: 0; overflow: hidden;
+  transition: max-height .3s cubic-bezier(.4,0,.2,1);
+}
+.faq-answer p {
+  padding: 0 16px 16px; font-size: .875rem; color: var(--text2);
+  line-height: 1.75; margin: 0;
+}
+
+/* ═══════════════════════════════════════════════
+   About Page v2
+═══════════════════════════════════════════════ */
+.about-hero-v2 {
+  position: relative; text-align: center;
+  padding: 32px 20px 24px; margin-bottom: 16px;
+  background: linear-gradient(135deg, var(--accent) 0%, #5b21b6 100%);
+  border-radius: 20px; overflow: hidden;
+  color: white;
+}
+.about-hero-glow {
+  position: absolute; inset: 0;
+  background: radial-gradient(circle at 50% 0%, rgba(255,255,255,.15) 0%, transparent 70%);
+  pointer-events: none;
+}
+.about-hero-v2 .about-hero-logo {
+  width: 72px; height: 72px; border-radius: 18px;
+  box-shadow: 0 8px 28px rgba(0,0,0,.3); margin-bottom: 12px;
+}
+.about-hero-v2 .about-hero-title { font-size: 1.8rem; font-weight: 800; color: white; margin: 0 0 6px; }
+.about-hero-v2 .about-hero-tagline { font-size: .95rem; color: rgba(255,255,255,.85); margin: 0 0 20px; }
+
+.about-hero-stats {
+  display: flex; align-items: center; justify-content: center; gap: 0;
+  background: rgba(0,0,0,.2); border-radius: 12px;
+  padding: 12px 20px; gap: 0;
+}
+.about-stat { text-align: center; padding: 0 18px; }
+.about-stat-num { display: block; font-size: 1.4rem; font-weight: 800; color: white; line-height: 1; }
+.about-stat-label { display: block; font-size: .72rem; color: rgba(255,255,255,.75); margin-top: 3px; text-transform: uppercase; letter-spacing: .05em; }
+.about-stat-divider { width: 1px; height: 36px; background: rgba(255,255,255,.2); }
+
+.about-story-card { position: relative; }
+.about-story-icon { font-size: 1.5rem; margin-bottom: 10px; }
+.about-story-card h3 { font-size: 1rem; font-weight: 700; color: var(--text); margin: 0 0 10px; }
+.about-story-card p { font-size: .875rem; color: var(--text2); line-height: 1.75; margin: 0; }
+
+.about-values-grid {
+  display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 14px;
+}
+@media (max-width: 480px) { .about-values-grid { grid-template-columns: 1fr; } }
+
+.about-value-card { text-align: center; padding: 18px 12px !important; }
+.about-value-icon { font-size: 1.6rem; margin-bottom: 8px; display: block; }
+.about-value-card h5 { font-size: .82rem; font-weight: 700; color: var(--text); margin: 0 0 5px; }
+.about-value-card p { font-size: .75rem; color: var(--text2); margin: 0; line-height: 1.5; }
+
+.about-sources-list { display: flex; flex-direction: column; gap: 10px; margin-top: 8px; }
+.about-source-item { display: flex; align-items: flex-start; gap: 10px; font-size: .84rem; color: var(--text2); line-height: 1.5; }
+.about-source-dot {
+  width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
+  background: var(--accent); margin-top: 5px;
+}
+.about-source-dot.crypto { background: #f59e0b; }
+.about-source-dot.metal  { background: #d97706; }
+.about-source-dot.parallel { background: #22c55e; }
+
+.about-features-full li { display: flex; align-items: flex-start; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--border); }
+.about-features-full li:last-child { border-bottom: none; }
+.af-icon { font-size: 1.2rem; flex-shrink: 0; }
+.about-features-full li div { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px; }
+.about-features-full li strong { font-size: .88rem; color: var(--text); }
+.af-desc { font-size: .82rem; color: var(--text2); }
+
+/* ═══════════════════════════════════════════════
+   Modern Background Enhancement
+═══════════════════════════════════════════════ */
+body.dark {
+  --bg: #050b1a;
+  --bg2: #080f22;
+}
+body.dark .app-shell {
+  background: var(--bg);
+}
+/* Animated mesh gradient background for dark mode */
+body.dark::before {
+  content: '';
+  position: fixed; inset: 0; z-index: -1; pointer-events: none;
+  background:
+    radial-gradient(ellipse 80% 50% at 20% -10%, rgba(29,106,255,.12) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 40% at 80% 10%, rgba(91,33,182,.1) 0%, transparent 55%),
+    radial-gradient(ellipse 50% 60% at 50% 100%, rgba(29,106,255,.06) 0%, transparent 60%);
+  animation: bgShift 20s ease-in-out infinite alternate;
+}
+@keyframes bgShift {
+  0%   { opacity: 1; }
+  50%  { opacity: .7; }
+  100% { opacity: 1; }
+}
+/* Light mode subtle gradient */
+body:not(.dark)::before {
+  content: '';
+  position: fixed; inset: 0; z-index: -1; pointer-events: none;
+  background:
+    radial-gradient(ellipse 70% 50% at 20% 0%, rgba(29,106,255,.06) 0%, transparent 60%),
+    radial-gradient(ellipse 50% 40% at 80% 5%, rgba(91,33,182,.04) 0%, transparent 55%);
+}
+
+/* Card glass effect improvements */
+body.dark .card {
+  background: rgba(17, 28, 58, 0.8);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255,255,255,.06);
+}
+/* Page hero enhancement */
+.page-hero {
+  background: linear-gradient(135deg, var(--accent) 0%, #7c3aed 60%, #1e40af 100%) !important;
+  position: relative; overflow: hidden;
+}
+.page-hero::after {
+  content: '';
+  position: absolute; inset: 0;
+  background: radial-gradient(circle at 80% 50%, rgba(255,255,255,.1) 0%, transparent 50%);
+  pointer-events: none;
+}
+
+/* Improved home cards hover */
+.home-card {
+  transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease;
+}
+.home-card:hover {
+  transform: translateY(-3px) scale(1.01);
+  box-shadow: 0 8px 32px rgba(29,106,255,.15);
+}
+
+/* Sidebar glass */
+body.dark .sidebar {
+  background: rgba(8, 15, 34, 0.97);
+  backdrop-filter: blur(20px);
+  border-right: 1px solid rgba(255,255,255,.06);
+}
+
+/* ═══════════════════════════════════════════════
+   Crypto & Metal Real Logos
+═══════════════════════════════════════════════ */
+.cp-icon-img {
+  width: 32px; height: 32px;
+  border-radius: 50%;
+  object-fit: contain;
+  display: block;
+}
+.cp-icon {
+  width: 36px; height: 36px;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.metal-icon {
+  width: 36px; height: 36px;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.metal-icon svg { width: 36px; height: 36px; border-radius: 50%; }
+.metals-calc-icon {
+  width: 28px; height: 28px;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.metals-calc-icon svg { width: 28px; height: 28px; border-radius: 50%; }
+.crypto-icon-img {
+  width: 32px; height: 32px;
+  border-radius: 50%; object-fit: contain;
+}
+/* Crypto selector icon container */
+.crypto-icon-lg {
+  width: 36px; height: 36px;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.crypto-icon-lg img { width: 32px; height: 32px; border-radius: 50%; object-fit: contain; }
+/* Dropdown crypto logo */
+.dd-crypto-logo {
+  width: 20px; height: 20px;
+  border-radius: 50%; object-fit: contain; flex-shrink: 0;
 }

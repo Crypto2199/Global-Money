@@ -34,7 +34,7 @@ import { initConsent } from "./consent.js";
 const SUB_PAGES = new Set([
   "converter","blackmarket","compare","trends","crypto",
   "alerts","history","favorites","metals","contact","about",
-  "portfolio","watchlist","rates"
+  "portfolio","watchlist","rates","faq"
 ]);
 
 function getPageFromHash() {
@@ -58,6 +58,52 @@ window.__gmGoHome = function() {
 // Legacy go-back (still supported)
 const _pageHistory = [];
 window.__gmGoBack = window.__gmGoHome;
+
+// ── Contact Send (works on desktop & mobile via anchor) ──────
+window.__gmSendContact = function(e) {
+  e.preventDefault();
+  const name    = document.getElementById("contactName")?.value.trim();
+  const email   = document.getElementById("contactEmail")?.value.trim();
+  const subject = document.getElementById("contactSubject")?.value.trim();
+  const message = document.getElementById("contactMessage")?.value.trim();
+
+  ["nameError","emailError","subjectError","messageError"].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = "";
+  });
+
+  let valid = true;
+  if (!name)    { const el = document.getElementById("nameError");    if (el) el.textContent = tr("contactValidName");    valid = false; }
+  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))
+                { const el = document.getElementById("emailError");   if (el) el.textContent = tr("contactValidEmail");   valid = false; }
+  if (!subject) { const el = document.getElementById("subjectError"); if (el) el.textContent = tr("contactValidSubject"); valid = false; }
+  if (!message || message.length < 10)
+                { const el = document.getElementById("messageError"); if (el) el.textContent = tr("contactValidMessage"); valid = false; }
+  if (!valid) return;
+
+  const body = `Name: ${name}\nEmail: ${email}\n\n${message}`;
+  const mailtoUrl = `mailto:globalmoneyspace@gmail.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+
+  // Use anchor element for reliable cross-platform mailto
+  const a = document.createElement("a");
+  a.href = mailtoUrl;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+
+  const statusEl = document.getElementById("contactStatus");
+  setTimeout(() => {
+    if (statusEl) {
+      statusEl.style.display = "block";
+      statusEl.className = "contact-status success";
+      statusEl.textContent = tr("contactSuccess");
+    }
+    document.getElementById("contactName").value = "";
+    document.getElementById("contactEmail").value = "";
+    document.getElementById("contactSubject").value = "";
+    document.getElementById("contactMessage").value = "";
+  }, 400);
+};
 
 // ── Page Navigation ────────────────────────────────
 function navigateTo(page, skipHash = false) {
@@ -104,6 +150,7 @@ function navigateTo(page, skipHash = false) {
   if (page === "portfolio") import("./portfolio.js").then(m => m.renderPortfolio()).catch(() => {});
   if (page === "watchlist") import("./watchlist.js").then(m => m.renderWatchlist()).catch(() => {});
   if (page === "contact")   initContactForm();
+  if (page === "faq")       initFaqAccordion();
   closeSidebar();
 }
 
@@ -422,73 +469,46 @@ function handleShareUrl() {
   if (p.get("amount") && amountEl) amountEl.value = p.get("amount");
 }
 
+// ── FAQ Accordion ──────────────────────────────────
+function initFaqAccordion() {
+  const accordion = document.getElementById("faqAccordion");
+  if (!accordion || accordion.dataset.init) return;
+  accordion.dataset.init = "1";
+  accordion.addEventListener("click", e => {
+    const btn = e.target.closest(".faq-question");
+    if (!btn) return;
+    const item = btn.closest(".faq-item");
+    const answer = item?.querySelector(".faq-answer");
+    if (!item || !answer) return;
+    const isOpen = item.classList.contains("open");
+    // Close all
+    accordion.querySelectorAll(".faq-item.open").forEach(el => {
+      el.classList.remove("open");
+      el.querySelector(".faq-answer").style.maxHeight = "0";
+    });
+    // Open clicked if was closed
+    if (!isOpen) {
+      item.classList.add("open");
+      answer.style.maxHeight = answer.scrollHeight + "px";
+    }
+  });
+}
+
 // ── Contact Form ───────────────────────────────────
 function initContactForm() {
-  const form = document.getElementById("contactForm");
-  if (!form || form.dataset.initialized) return;
-  form.dataset.initialized = "1";
-
-  document.getElementById("contactName").placeholder    = tr("contactNamePlaceholder");
-  document.getElementById("contactEmail").placeholder   = tr("contactEmailPlaceholder");
-  document.getElementById("contactSubject").placeholder = tr("contactSubjectPlaceholder");
-  document.getElementById("contactMessage").placeholder = tr("contactMessagePlaceholder");
-
-  form.addEventListener("submit", e => {
-    e.preventDefault();
-    handleContactSubmit();
-  });
-}
-
-function handleContactSubmit() {
-  const name    = document.getElementById("contactName")?.value.trim();
-  const email   = document.getElementById("contactEmail")?.value.trim();
-  const subject = document.getElementById("contactSubject")?.value.trim();
-  const message = document.getElementById("contactMessage")?.value.trim();
-
-  ["nameError","emailError","subjectError","messageError"].forEach(id => {
-    const el = document.getElementById(id);
-    if (el) el.textContent = "";
-  });
-
-  let valid = true;
-  if (!name)    { document.getElementById("nameError").textContent    = tr("contactValidName");    valid = false; }
-  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))
-                { document.getElementById("emailError").textContent   = tr("contactValidEmail");   valid = false; }
-  if (!subject) { document.getElementById("subjectError").textContent = tr("contactValidSubject"); valid = false; }
-  if (!message || message.length < 10)
-                { document.getElementById("messageError").textContent = tr("contactValidMessage"); valid = false; }
-  if (!valid) return;
-
-  const btn = document.getElementById("contactSubmitBtn");
-  const btnLabel = btn?.querySelector("span");
-  if (btn) { btn.disabled = true; if (btnLabel) btnLabel.textContent = tr("loading"); }
-
-  const body = `Name: ${name}\nEmail: ${email}\n\n${message}`;
-  const mailtoUrl = `mailto:globalmoneyspace@gmail.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-  const statusEl = document.getElementById("contactStatus");
-
-  try {
-    window.open(mailtoUrl, "_blank");
-    setTimeout(() => {
-      if (statusEl) {
-        statusEl.style.display = "block";
-        statusEl.className = "contact-status success";
-        statusEl.textContent = tr("contactSuccess");
-      }
-      document.getElementById("contactForm").reset();
-      if (btn)      { btn.disabled = false; }
-      if (btnLabel) { btnLabel.textContent = tr("contactSend"); }
-    }, 500);
-  } catch (err) {
-    if (statusEl) {
-      statusEl.style.display = "block";
-      statusEl.className = "contact-status error";
-      statusEl.textContent = tr("contactError");
-    }
-    if (btn)      btn.disabled = false;
-    if (btnLabel) btnLabel.textContent = tr("contactSend");
+  // Update placeholders on language change
+  const cName = document.getElementById("contactName");
+  if (cName) {
+    cName.placeholder = tr("contactNamePlaceholder");
+    const em = document.getElementById("contactEmail");
+    const su = document.getElementById("contactSubject");
+    const ms = document.getElementById("contactMessage");
+    if (em) em.placeholder = tr("contactEmailPlaceholder");
+    if (su) su.placeholder = tr("contactSubjectPlaceholder");
+    if (ms) ms.placeholder = tr("contactMessagePlaceholder");
   }
 }
+
 
 // ── Init ───────────────────────────────────────────
 window.addEventListener("load", async () => {
@@ -496,7 +516,7 @@ window.addEventListener("load", async () => {
   const savedTheme = localStorage.getItem("theme");
   applyTheme(savedTheme === null ? true : savedTheme === "dark");
 
-  // Apply language (default Arabic)
+  // Apply language (default English)
   applyLang();
   handleShareUrl();
 

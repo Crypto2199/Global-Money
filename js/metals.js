@@ -7,10 +7,14 @@ import { tr } from "./i18n.js";
 import { getMetalsRates, getMetalsLastUpdate, loadMetals, dataStatus } from "./api.js";
 
 export const METALS_DATA = {
-  XAU: { name:"Gold",      nameAr:"الذهب",      nameFr:"Or",       icon:"🥇", color:"#f0c040", fallback: 3350 },
-  XAG: { name:"Silver",    nameAr:"الفضة",      nameFr:"Argent",   icon:"🥈", color:"#c0c0c0", fallback: 33.5 },
-  XPT: { name:"Platinum",  nameAr:"البلاتين",   nameFr:"Platine",  icon:"💎", color:"#8ab4d4", fallback: 1050 },
-  XPD: { name:"Palladium", nameAr:"البلاديوم",  nameFr:"Palladium",icon:"⚗️", color:"#a8c8d8", fallback: 1020 },
+  XAU: { name:"Gold",      nameAr:"الذهب",      nameFr:"Or",       icon:"🥇", color:"#f0c040", fallback: 3350,
+         logo: `<svg viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="18" cy="18" r="18" fill="#F6C243"/><circle cx="18" cy="18" r="14" fill="#E8A800"/><text x="50%" y="55%" dominant-baseline="middle" text-anchor="middle" font-size="14" font-weight="bold" fill="#FFF8DC" font-family="serif">Au</text></svg>` },
+  XAG: { name:"Silver",    nameAr:"الفضة",      nameFr:"Argent",   icon:"🥈", color:"#c0c0c0", fallback: 33.5,
+         logo: `<svg viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="18" cy="18" r="18" fill="#C0C0C0"/><circle cx="18" cy="18" r="14" fill="#A8A8A8"/><text x="50%" y="55%" dominant-baseline="middle" text-anchor="middle" font-size="14" font-weight="bold" fill="#F0F0F0" font-family="serif">Ag</text></svg>` },
+  XPT: { name:"Platinum",  nameAr:"البلاتين",   nameFr:"Platine",  icon:"💎", color:"#8ab4d4", fallback: 1050,
+         logo: `<svg viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="18" cy="18" r="18" fill="#8AB4D4"/><circle cx="18" cy="18" r="14" fill="#6A94B4"/><text x="50%" y="55%" dominant-baseline="middle" text-anchor="middle" font-size="14" font-weight="bold" fill="#EEF5FF" font-family="serif">Pt</text></svg>` },
+  XPD: { name:"Palladium", nameAr:"البلاديوم",  nameFr:"Palladium",icon:"⚗️", color:"#a8c8d8", fallback: 1020,
+         logo: `<svg viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="18" cy="18" r="18" fill="#A8C8D8"/><circle cx="18" cy="18" r="14" fill="#88A8B8"/><text x="50%" y="55%" dominant-baseline="middle" text-anchor="middle" font-size="14" font-weight="bold" fill="#F0F8FF" font-family="serif">Pd</text></svg>` },
 };
 
 const prevClosePrices = {};
@@ -79,9 +83,13 @@ export function renderMetals() {
     header.className = "metal-card-header";
     header.style.cssText = `background:linear-gradient(135deg,${d.color}22,${d.color}11);border-color:${d.color}44`;
 
-    const iconSpan = document.createElement("span");
+    const iconSpan = document.createElement("div");
     iconSpan.className = "metal-icon";
-    iconSpan.textContent = d.icon;
+    if (d.logo) {
+      iconSpan.innerHTML = d.logo;
+    } else {
+      iconSpan.textContent = d.icon;
+    }
 
     const headerText = document.createElement("div");
     headerText.className = "metal-header-text";
@@ -216,9 +224,13 @@ export function renderMetalsCalc() {
     const item = document.createElement("div");
     item.className = "metals-calc-item";
 
-    const iconSpan = document.createElement("span");
+    const iconSpan = document.createElement("div");
     iconSpan.className = "metals-calc-icon";
-    iconSpan.textContent = d.icon;
+    if (d.logo) {
+      iconSpan.innerHTML = d.logo;
+    } else {
+      iconSpan.textContent = d.icon;
+    }
 
     const nameSpan = document.createElement("span");
     nameSpan.className = "metals-calc-name";

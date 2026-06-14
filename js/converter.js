@@ -137,7 +137,16 @@ export function renderCryptoPrices() {
 
     const iconDiv = document.createElement("div");
     iconDiv.className = "cp-icon";
-    iconDiv.textContent = info.icon;
+    if (info.logo) {
+      const img = document.createElement("img");
+      img.src = info.logo;
+      img.alt = sym;
+      img.className = "cp-icon-img";
+      img.onerror = () => { img.style.display = "none"; iconDiv.textContent = info.icon; };
+      iconDiv.appendChild(img);
+    } else {
+      iconDiv.textContent = info.icon;
+    }
 
     const infoDiv = document.createElement("div");
     const nameDiv = document.createElement("div");

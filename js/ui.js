@@ -125,10 +125,27 @@ export function updateCryptoDisplay() {
   const { cryptoFrom, cryptoTo } = state;
   const cf = CRYPTOS[cryptoFrom], ct = CRYPTOS[cryptoTo];
   const safe = (id, text) => { const e = document.getElementById(id); if (e) e.textContent = text; };
-  safe("cryptoFromIcon",  cf?.icon || cryptoFrom);
+
+  // Update icon elements with logo if available
+  const fromIconEl = document.getElementById("cryptoFromIcon");
+  if (fromIconEl) {
+    if (cf?.logo) {
+      fromIconEl.innerHTML = `<img src="${cf.logo}" alt="${cryptoFrom}" class="crypto-icon-img" onerror="this.style.display='none';this.parentNode.textContent='${cf.icon}'">`;
+    } else {
+      fromIconEl.textContent = cf?.icon || cryptoFrom;
+    }
+  }
+  const toIconEl = document.getElementById("cryptoToIcon");
+  if (toIconEl) {
+    if (ct?.logo) {
+      toIconEl.innerHTML = `<img src="${ct.logo}" alt="${cryptoTo}" class="crypto-icon-img" onerror="this.style.display='none';this.parentNode.textContent='${ct.icon}'">`;
+    } else {
+      toIconEl.textContent = ct?.icon || cryptoTo;
+    }
+  }
+
   safe("cryptoFromCode",  cryptoFrom);
   safe("cryptoFromName",  cf?.name || cryptoFrom);
-  safe("cryptoToIcon",    ct?.icon || cryptoTo);
   safe("cryptoToCode",    cryptoTo);
   safe("cryptoToName",    ct?.name || cryptoTo);
   const lbl = document.getElementById("cryptoFromLabel");
@@ -139,7 +156,7 @@ export function updateCryptoDisplay() {
 export function buildDropdown(ddEl, inputEl, isCrypto, onSelect) {
   const { allFiatCodes } = state;
   const items = isCrypto
-    ? Object.entries(CRYPTOS).map(([code, d]) => ({ code, name: d.name, icon: d.icon }))
+    ? Object.entries(CRYPTOS).map(([code, d]) => ({ code, name: d.name, icon: d.icon, logo: d.logo }))
     : allFiatCodes.map(c => ({ code: c, name: currencyNames[c] || c, flag: getFlag(c) }));
 
   function render(filter = "") {
@@ -165,6 +182,13 @@ export function buildDropdown(ddEl, inputEl, isCrypto, onSelect) {
         img.src = i.flag;
         img.alt = "";
         img.className = "dd-flag";
+        item.appendChild(img);
+      } else if (i.logo) {
+        const img = document.createElement("img");
+        img.src = i.logo;
+        img.alt = i.code;
+        img.className = "dd-flag dd-crypto-logo";
+        img.onerror = () => { img.style.display = "none"; const sp = el("span", i.icon, { className: "dd-icon" }); item.insertBefore(sp, item.firstChild); };
         item.appendChild(img);
       } else if (i.icon) {
         const iconSpan = el("span", i.icon, { className: "dd-icon" });

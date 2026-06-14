@@ -13,7 +13,7 @@ const _state = {
   cryptoTo: "USDT",
 
   currentPage: "home",
-  lang: localStorage.getItem("lang") || "ar",
+  lang: localStorage.getItem("lang") || "en",
   lastRate: 1,
   deferredInstallPrompt: null,
 

@@ -50,7 +50,7 @@ export function renderTVWidget() {
     hide_top_toolbar: false,
     hide_legend: false,
     save_image: false,
-    allow_symbol_change: true,
+    allow_symbol_change: false,
     container_id: "tvWidgetContainer"
   };
 
